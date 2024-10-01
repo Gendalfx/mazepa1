@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сайт боргу</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        #debt-amount {
+            font-size: 2em;
+            color: #f00;
+        }
+    </style>
+</head>
+<body>
+    <h1>Сума боргу</h1>
+    <div id="debt-amount">$<span id="debt">1000</span></div>
+    <div id="report">Звіт: <span id="report-time"></span></div>
+
+    <script>
+        const debtElement = document.getElementById("debt");
+        const reportTimeElement = document.getElementById("report-time");
+
+        async function fetchDebt() {
+            const response = await fetch('/api/debt');
+            const data = await response.json();
+            debtElement.innerText = data.debt;
+            reportTimeElement.innerText = new Date(data.lastUpdate).toLocaleString();
+        }
+
+        // Оновлюємо борг при завантаженні сторінки
+        fetchDebt();
+    </script>
+</body>
+</html>
