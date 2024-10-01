@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сайт для відстеження боргу</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #timer, #debt {
+            font-size: 2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Відстеження боргу</h1>
+    <p>Поточний борг: <span id="debt">0</span> грн</p>
+    <p>До наступного нарахування відсотків:</p>
+    <div id="timer">Завантаження...</div>
+
+    <script>
+        // Ініціалізуємо борг і час останнього оновлення
+        let debt = localStorage.getItem('debt') ? parseFloat(localStorage.getItem('debt')) : 1000; // початковий борг 1000 грн
+        let lastUpdate = localStorage.getItem('lastUpdate') ? new Date(localStorage.getItem('lastUpdate')) : new Date();
+        
+        // Оновлюємо відображення боргу
+        document.getElementById('debt').innerHTML = debt.toFixed(2);
+
+        // Функція для додавання 5% до боргу кожні 24 години
+        function updateDebt() {
+            const now = new Date();
+            const diff = now - lastUpdate;
+            const hoursPassed = diff / (1000 * 60 * 60); // перетворюємо різницю в години
+
+            if (hoursPassed >= 24) {
+                debt *= 1.05; // додаємо 5% до боргу
+                lastUpdate = now; // оновлюємо час останнього оновлення
+                localStorage.setItem('debt', debt.toFixed(2)); // зберігаємо новий борг
+                localStorage.setItem('lastUpdate', lastUpdate); // зберігаємо час останнього оновлення
+                document.getElementById('debt').innerHTML = debt.toFixed(2); // оновлюємо відображення боргу
+            }
+        }
+
+        // Функція для відліку часу до наступного нарахування
+        function startTimer() {
+            const nextUpdate = new Date(lastUpdate.getTime() + 24 * 60 * 60 * 1000); // час наступного нарахування
+            let timer = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = nextUpdate - now;
+
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('timer').innerHTML = hours + "ч " + minutes + "м " + seconds + "с ";
+
+                if (distance < 0) {
+                    clearInterval(timer);
+                    document.getElementById('timer').innerHTML = "Нарахування відсотків!";
+                    updateDebt(); // Оновлюємо борг і перезапускаємо таймер
+                    startTimer(); // Починаємо новий відлік
+                }
+            }, 1000);
+        }
+
+        // Оновлюємо борг після кожного перезавантаження і запускаємо таймер
+        updateDebt();
+        startTimer();
+    </script>
+</body>
+</html>
