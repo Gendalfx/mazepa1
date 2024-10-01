@@ -28,32 +28,24 @@
 <body>
     <div class="container">
         <h1>Сума Боргу</h1>
-        <p id="debtAmount">0.00 грн</p>
-        <p id="report">Останнє оновлення: <span id="lastUpdated">0</span> хвилин тому</p>
+        <p id="debtAmount">1800.00 грн</p>
+        <p id="report">Останнє оновлення: <span id="lastUpdated">0</span> секунд тому</p>
     </div>
     <script>
-        let debtAmount = 1000; // Початкова сума боргу
-        const increaseRate = 0.05; // 5%
-        const updateInterval = 24 * 60 * 60 * 1000; // 24 години в мілісекундах
+        let debtAmount = 1800; // Початкова сума боргу
+        const dailyIncrease = debtAmount * 0.05; // 5% від початкової суми боргу
 
         function updateDebt() {
-            debtAmount += debtAmount * increaseRate; // Збільшення боргу
+            debtAmount += dailyIncrease / (24 * 60 * 60); // Додаємо частину щоденного збільшення щосекунди
             document.getElementById('debtAmount').innerText = debtAmount.toFixed(2) + ' грн';
-            document.getElementById('lastUpdated').innerText = 0; // Скидання таймера
-
-            // Оновлення кожні 24 години
-            setTimeout(() => {
-                updateDebt();
-            }, updateInterval);
         }
 
         // Оновлення часу в реальному часі
         setInterval(() => {
+            updateDebt();
             const lastUpdated = parseInt(document.getElementById('lastUpdated').innerText);
-            document.getElementById('lastUpdated').innerText = lastUpdated + 1;
-        }, 60000); // Оновлення кожну хвилину
-
-        updateDebt(); // Початкове оновлення боргу
+            document.getElementById('lastUpdated').innerText = lastUpdated + 1; // Збільшуємо секундомір
+        }, 1000); // Оновлення кожну секунду
     </script>
 </body>
 </html>
