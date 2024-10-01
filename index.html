@@ -29,14 +29,21 @@
         const reportTimeElement = document.getElementById("report-time");
 
         async function fetchDebt() {
-            const response = await fetch('/api/debt');
-            const data = await response.json();
-            debtElement.innerText = data.debt;
-            reportTimeElement.innerText = new Date(data.lastUpdate).toLocaleString();
+            try {
+                const response = await fetch('/api/debt');
+                const data = await response.json();
+                debtElement.innerText = data.debt;
+                reportTimeElement.innerText = new Date(data.lastUpdate).toLocaleString();
+            } catch (error) {
+                console.error("Error fetching debt data:", error);
+            }
         }
 
         // Оновлюємо борг при завантаженні сторінки
         fetchDebt();
+
+        // Оновлюємо дані кожні 10 секунд
+        setInterval(fetchDebt, 10000);
     </script>
 </body>
 </html>
