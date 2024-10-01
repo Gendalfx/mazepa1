@@ -1,22 +1,29 @@
 <?php
-require 'db.php'; // Підключення до бази даних
+// Файл для зберігання боргу
+$file = 'debt.txt';
 
-// Отримання даних боргу
-$stmt = $pdo->query("SELECT amount, last_updated FROM debt WHERE id = 1");
-$debt = $stmt->fetch(PDO::FETCH_ASSOC);
+// Читання значень з файлу
+if (file_exists($file)) {
+    $data = file($file, FILE_IGNORE_NEW_LINES);
+    $amount = (float)$data[0]; // Сума боргу
+    $last_updated = $data[1]; // Дата останнього оновлення
+} else {
+    // Якщо файл не існує, створити його з початковими значеннями
+    $amount = 1800.00; // Початкова сума боргу
+    $last_updated = date('Y-m-d H:i:s');
+    file_put_contents($file, "$amount\n$last_updated");
+}
 
-// Визначення часу останнього оновлення
-$lastUpdated = strtotime($debt['last_updated']);
-$currentTime = time();
-$timeDiff = $currentTime - $lastUpdated;
-$daysPassed = floor($timeDiff / (60 * 60 * 24)); // Кількість днів, що пройшли
-$dailyIncrease = $debt['amount'] * 0.05; // 5% від суми боргу
-$newDebtAmount = $debt['amount'] + ($dailyIncrease * $daysPassed); // Нова сума боргу
+// Обчислення нової суми боргу
+$time_diff = time() - strtotime($last_updated);
+$days = floor($time_diff / (60 * 60 * 24));
 
-// Оновлення суми боргу, якщо пройшов день
-if ($daysPassed > 0) {
-    $stmt = $pdo->prepare("UPDATE debt SET amount = ?, last_updated = CURRENT_TIMESTAMP WHERE id = 1");
-    $stmt->execute([$newDebtAmount]);
+if ($days > 0) {
+    $amount += $amount * 0.05 * $days; // Збільшення на 5% за кожен день
+    $last_updated = date('Y-m-d H:i:s');
+    
+    // Оновлення значень у файлі
+    file_put_contents($file, "$amount\n$last_updated");
 }
 ?>
 
@@ -25,23 +32,17 @@ if ($daysPassed > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сайт Боргу</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        h1 { font-size: 2em; }
-        .amount { font-size: 1.5em; margin: 20px 0; }
-    </style>
+    <title>Сума Боргу</title>
 </head>
 <body>
     <h1>Сума Боргу</h1>
-    <div class="amount"><?php echo number_format($newDebtAmount, 2); ?> грн</div>
-    <div>Останнє оновлення: <?php echo $daysPassed > 0 ? $daysPassed . ' днів тому' : 'менше години тому'; ?></div>
-
+    <p><?php echo number_format($amount, 2, '.', ' ') . ' грн'; ?></p>
+    <p>Останнє оновлення: <?php echo $last_updated; ?></p>
     <script>
-        // Оновлення кожну секунду
+        // Оновлення даних кожні 5 секунд
         setInterval(() => {
-            window.location.reload(); // Перезавантаження сторінки
-        }, 1000);
+            location.reload();
+        }, 5000);
     </script>
 </body>
 </html>
