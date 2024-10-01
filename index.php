@@ -1,48 +1,57 @@
-<?php
-// Файл для зберігання боргу
-$file = 'debt.txt';
-
-// Читання значень з файлу
-if (file_exists($file)) {
-    $data = file($file, FILE_IGNORE_NEW_LINES);
-    $amount = (float)$data[0]; // Сума боргу
-    $last_updated = $data[1]; // Дата останнього оновлення
-} else {
-    // Якщо файл не існує, створити його з початковими значеннями
-    $amount = 1800.00; // Початкова сума боргу
-    $last_updated = date('Y-m-d H:i:s');
-    file_put_contents($file, "$amount\n$last_updated");
-}
-
-// Обчислення нової суми боргу
-$time_diff = time() - strtotime($last_updated);
-$days = floor($time_diff / (60 * 60 * 24));
-
-if ($days > 0) {
-    $amount += $amount * 0.05 * $days; // Збільшення на 5% за кожен день
-    $last_updated = date('Y-m-d H:i:s');
-    
-    // Оновлення значень у файлі
-    file_put_contents($file, "$amount\n$last_updated");
-}
-?>
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сума Боргу</title>
+    <title>Сайт боргу</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        #debt-amount {
+            font-size: 2em;
+            color: #f00;
+        }
+    </style>
 </head>
 <body>
-    <h1>Сума Боргу</h1>
-    <p><?php echo number_format($amount, 2, '.', ' ') . ' грн'; ?></p>
-    <p>Останнє оновлення: <?php echo $last_updated; ?></p>
+    <h1>Сума боргу</h1>
+    <div id="debt-amount">$<span id="debt">1000</span></div>
+    <div id="report">Звіт: <span id="report-time"></span></div>
+
     <script>
-        // Оновлення даних кожні 5 секунд
-        setInterval(() => {
-            location.reload();
-        }, 5000);
+        const debtElement = document.getElementById("debt");
+        const reportTimeElement = document.getElementById("report-time");
+
+        // Початкове значення боргу
+        let debt = parseFloat(localStorage.getItem("debt")) || 1000;
+        // Час останнього оновлення
+        let lastUpdate = parseInt(localStorage.getItem("lastUpdate")) || Date.now();
+
+        // Функція для оновлення боргу
+        function updateDebt() {
+            const now = Date.now();
+            const elapsedHours = (now - lastUpdate) / (1000 * 60 * 60); // Час в годинах
+
+            if (elapsedHours >= 24) {
+                const periods = Math.floor(elapsedHours / 24);
+                debt *= Math.pow(1.05, periods); // Збільшення боргу на 5% кожні 24 години
+                lastUpdate += periods * 24 * 60 * 60 * 1000; // Оновлення часу останнього оновлення
+                localStorage.setItem("debt", debt);
+                localStorage.setItem("lastUpdate", lastUpdate);
+            }
+
+            debtElement.innerText = debt.toFixed(2);
+            reportTimeElement.innerText = new Date(lastUpdate).toLocaleString();
+        }
+
+        // Оновлюємо борг при завантаженні сторінки
+        updateDebt();
     </script>
 </body>
 </html>
